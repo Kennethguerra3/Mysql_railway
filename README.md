@@ -2,56 +2,83 @@
 
 Este repositorio contiene la configuración para desplegar un servidor MySQL optimizado en Railway.
 
-## 📋 Requisitos Previos
+# Deploy and Host
 
-- Una cuenta en [Railway](https://railway.app/)
-- Railway CLI instalado (opcional, recomendado)
+Puedes desplegar este proyecto directamente en Railway usando el siguiente botón o siguiendo los pasos manuales.
 
-## 🚀 Despliegue Rápido
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new?template=https://github.com/Kennethguerra3/Mysql_railway)
+
+## About Hosting
+
+Este proyecto proporciona un contenedor Dockerizado para **MySQL 8.0**, preconfigurado para ejecutarse eficientemente en la infraestructura de Railway. Incluye ajustes específicos para permisos de volumen, zona horaria (Perú) y comprobaciones de estado (Healthchecks) para garantizar una alta disponibilidad.
+
+## Why Deploy
+
+- **Optimizado para Nube**: Configuración ajustada para entornos de contenedores efímeros pero con persistencia garantizada.
+- **Zona Horaria Local**: Configurado por defecto con `America/Lima` para facilitar el manejo de fechas en aplicaciones locales.
+- **Listo para Producción**: Incluye Healthchecks y gestión de usuarios root segura mediante variables de entorno.
+
+## Common Use Cases
+
+- **Backend para Aplicaciones Web**: Base de datos principal para aplicaciones Node.js, Python, Go, etc.
+- **Microservicios**: Instancia de base de datos dedicada para servicios desacoplados.
+- **Entornos de Desarrollo y Staging**: Réplica rápida de entornos de base de datos SQL.
+
+## Dependencies for
+
+### Deployment Dependencies
+
+Para desplegar este proyecto necesitas:
+
+- Una cuenta en [Railway](https://railway.app/).
+- (Opcional) [Railway CLI](https://docs.railway.app/guides/cli) instalado para gestión avanzada.
+- (Opcional) Cliente MySQL local (Workbench, DBeaver, TablePlus) para conexión remota.
+
+---
+
+## 🚀 Guía de Despliegue Manual
+
+Si no usas el botón de "Deploy on Railway":
 
 1. **Nuevo Proyecto**: En Railway, crea un `New Project` > `Empty Project`.
-2. **Servicio**: Añade un servicio seleccionando este repositorio o subiendo el código.
+2. **Servicio**: Añade un servicio seleccionando este repositorio.
 3. **Variables de Entorno**: Configura las siguientes variables **ANTES** del despliegue:
 
-### Variables Obligatorias
+### Variables de Entorno
 
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
-| `MYSQL_ROOT_PASSWORD` | Contraseña para el usuario `root`. | `MiPasswordSeguro123!` |
-| `MYSQL_DATABASE` | (Opcional) Crea una base de datos al iniciar. | `mi_base_datos` |
-| `MYSQL_USER` | (Opcional) Crea un usuario adicional. | `app_user` |
-| `MYSQL_PASSWORD` | (Opcional) Contraseña para `MYSQL_USER`. | `AppPass123!` |
+| `MYSQL_ROOT_PASSWORD` | **Requerido**. Contraseña para `root`. | `MiPasswordSeguro123!` |
+| `MYSQL_DATABASE` | crea una DB al iniciar. | `mi_base_datos` |
+| `MYSQL_USER` | Crea un usuario adicional. | `app_user` |
+| `MYSQL_PASSWORD` | Contraseña para `MYSQL_USER`. | `AppPass123!` |
 
-### Variables de Sistema (Ya configuradas en Dockerfile)
-
-- `TZ`: `America/Lima`
+> **Nota**: `TZ` está configurado por defecto a `America/Lima` en el Dockerfile.
 
 ## 💾 Configuración de Volumen (Persistencia)
 
-Para evitar perder los datos al reiniciar el servicio, **DEBES** configurar un volumen en Railway.
+**CRÍTICO**: Para evitar perder datos al reiniciar, configura un volumen.
 
-1. Ve a la pestaña **Settings** de tu servicio en Railway.
-2. Busca la sección **Volumes**.
-3. Haz clic en **+ Add Volume**.
-4. Usa la siguiente ruta de montaje (`Mount Path`):
+1. Ve a **Settings** > **Volumes** en tu servicio Railway.
+2. Haz clic en **+ Add Volume**.
+3. Ruta de montaje (`Mount Path`):
 
-run
-/var/lib/mysql
-
-
-> **⚠️ IMPORTANTE**: Si no configuras este volumen, ¡todos tus datos se perderán cada vez que se redespliegue el servicio!
+   ```text
+   /var/lib/mysql
+   ```
 
 ## 🛠️ Conexión
 
-### Desde otro servicio en Railway (Red Privada)
-Usa las variables que Railway provee automáticamente o conecta usando:
-- **Host**: `${RAILWAY_PRIVATE_DOMAIN}` (o el nombre del servicio)
+### Red Privada (Internal)
+
+- **Host**: `${RAILWAY_PRIVATE_DOMAIN}`
 - **Port**: `3306`
 
-### Desde tu PC (Red Pública)
+### Red Pública (External)
+
 1. Ve a **Settings** > **Networking**.
-2. Genera un dominio público (Public Domain) o usa TCP Proxy si está disponible.
-3. Conéctate usando el host y puerto proporcionado.
+2. Genera un **Public Domain**.
+3. Usa el host y puerto TCP proporcionados (ej. `autorailway.com:12345`).
 
 ## 🩺 Healthcheck
-El contenedor incluye un chequeo de salud automático que verifica si MySQL responde a `ping` cada 15 segundos.
+El contenedor verifica automáticamente su estado cada 15s usando `mysqladmin ping`.
