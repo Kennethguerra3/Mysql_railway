@@ -13,6 +13,10 @@ FROM mysql:8.0
 # Elevamos a root para asegurar creación de carpetas custom si fuera necesario.
 USER root
 
+# Instalar tzdata para configurar correctamente la zona horaria (base image es Oracle Linux/RHEL)
+RUN microdnf install -y tzdata && microdnf clean all
+
+
 # ==========================================
 # 3. VARIABLES DE ENTORNO (CONFIGURACIÓN)
 # ==========================================
