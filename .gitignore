@@ -1,0 +1,5 @@
+# Archivos locales y de migración
+migrar_db.py
+__pycache__/
+*.log
+.env
