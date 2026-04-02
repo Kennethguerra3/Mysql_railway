@@ -6,7 +6,7 @@ Este repositorio contiene la configuración para desplegar un servidor MySQL opt
 
 Puedes desplegar este proyecto directamente en Railway usando el siguiente botón o siguiendo los pasos manuales.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new?template=https://github.com/Kennethguerra3/Mysql_railway)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/mysql-en-railway)
 
 ## About Hosting
 

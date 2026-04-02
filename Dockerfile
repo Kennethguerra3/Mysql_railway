@@ -56,8 +56,8 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
 # ==========================================
 # 6. CONFIGURACIÓN FINAL
 # ==========================================
-# Copiamos configuración custom si existe (opcional)
-# COPY my.cnf /etc/mysql/conf.d/
+# Copiamos configuración custom de rendimiento
+COPY custom.cnf /etc/mysql/conf.d/
 
 # ==========================================
 # 7. ARRANQUE

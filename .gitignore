@@ -3,3 +3,7 @@ migrar_db.py
 __pycache__/
 *.log
 .env
+mysql-8.0.45-winx64
+mysql-8.0.45-winx64.zip
+temp_dump.sql
+temp_header.sql
