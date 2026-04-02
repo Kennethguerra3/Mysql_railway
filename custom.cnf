@@ -2,7 +2,9 @@
 # Optimize memory usage for high concurrency (assuming 1GB+ RAM)
 # Ideally 70-80% of available RAM
 innodb_buffer_pool_size = 768M 
-innodb_log_file_size = 256M
+innodb_redo_log_capacity = 512M
+# host_cache_size replaces deprecated --skip-host-cache
+host_cache_size = 0
 innodb_flush_log_at_trx_commit = 2
 innodb_flush_method = O_DIRECT
 innodb_thread_concurrency = 0
