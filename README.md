@@ -82,3 +82,24 @@ Si no usas el botón de "Deploy on Railway":
 
 ## 🩺 Healthcheck
 El contenedor verifica automáticamente su estado cada 15s usando `mysqladmin ping`.
+
+## 🧠 Ajuste de memoria (custom.cnf)
+
+`custom.cnf` se copia a `/etc/mysql/conf.d/` y la imagen oficial sí lo carga (verificado en producción).
+
+Los valores están dimensionados para el contenedor real de Railway, no para una VM:
+
+| Parámetro | Valor | Motivo |
+|-----------|-------|--------|
+| `innodb_buffer_pool_size` | 128M | El conjunto de datos completo ocupa unos 150 MB y el uso medido es de 0.169 GB. |
+| `performance_schema` | OFF | Ahorra varias decenas de MB de estructuras fijas, Railway ya da métricas. |
+| `mysqlx` | OFF | Ninguna aplicación usa el protocolo X DevAPI del puerto 33060. |
+| `table_open_cache` / `table_definition_cache` | 600 | El uso real es de 231 tablas abiertas y 162 definiciones. |
+| `temptable_max_ram` | 64M | Por defecto MySQL puede reservar hasta 1 GB para tablas temporales internas. |
+| `max_connections` | 60 | El pico histórico de conexiones simultáneas es de 2. |
+| `innodb_redo_log_capacity` | 128M | 512M reservaba espacio de volumen sin necesidad. |
+
+> **Atención**: el servicio en Railway tiene un *Custom Start Command* del tipo
+> `docker-entrypoint.sh mysqld --performance-schema=OFF --innodb-buffer-pool-size=128M`.
+> Las opciones de la línea de comandos tienen prioridad sobre este archivo, así que si
+> alguna vez cambias un valor aquí y no ves el efecto, revisa primero ese comando de arranque.

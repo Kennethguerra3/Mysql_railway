@@ -1,7 +1,8 @@
 # ==========================================
 # 1. IMAGEN BASE
 # ==========================================
-# Usamos la versión 8.0 estable (debian based)
+# Usamos la versión 8.0 estable. Ojo: la imagen oficial actual (8.0.46) está basada
+# en Oracle Linux 9, no en Debian, por eso más abajo se usa microdnf y no apt.
 FROM mysql:8.0
 
 # ==========================================
@@ -56,7 +57,12 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
 # ==========================================
 # 6. CONFIGURACIÓN FINAL
 # ==========================================
-# Copiamos configuración custom de rendimiento
+# Copiamos configuración custom de rendimiento y memoria.
+# Ruta verificada en producción: /etc/my.cnf de la imagen incluye /etc/mysql/conf.d,
+# por lo que estos ajustes sí se aplican al arrancar.
+# Importante: si el servicio en Railway tiene un "Custom Start Command" con opciones
+# de mysqld (por ejemplo --innodb-buffer-pool-size), esas opciones ganan sobre este
+# archivo, porque la línea de comandos tiene mayor prioridad que los ficheros .cnf.
 COPY custom.cnf /etc/mysql/conf.d/
 
 # ==========================================

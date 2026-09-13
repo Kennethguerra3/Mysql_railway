@@ -1,30 +1,81 @@
 [mysqld]
-# Optimize memory usage for high concurrency (assuming 1GB+ RAM)
-# Ideally 70-80% of available RAM
-innodb_buffer_pool_size = 768M 
-innodb_redo_log_capacity = 512M
-# host_cache_size replaces deprecated --skip-host-cache
+# ==========================================
+# MEMORIA (ajustada al contenedor real de Railway)
+# ==========================================
+# Medicion en produccion: uso estable de 0.169 GB, dataset completo de 150 MB,
+# pico de conexiones simultaneas de 2 y 231 tablas abiertas.
+# Antes aqui figuraba 768M, un valor pensado para una VM y no para este contenedor,
+# que ademas nunca llegaba a aplicarse porque el comando de arranque de Railway
+# ya forzaba 128M. Se deja 128M explicito para que el repositorio refleje la realidad
+# y para que, si alguien quita ese override, la memoria no se dispare a 800 MB.
+innodb_buffer_pool_size = 128M
+
+# El redo ocupa espacio fijo en el volumen persistente. 512M es excesivo para el
+# volumen de escritura actual, 128M libera 384 MB de disco sin afectar la durabilidad.
+innodb_redo_log_capacity = 128M
+
+# Buffer de redo en RAM: 8M sobra para esta carga de escritura (antes 16M por defecto).
+innodb_log_buffer_size = 8M
+
+# host_cache_size reemplaza al obsoleto --skip-host-cache
 host_cache_size = 0
 innodb_flush_log_at_trx_commit = 2
 innodb_flush_method = O_DIRECT
 innodb_thread_concurrency = 0
 
-# Connection limits
-max_connections = 100
+# Performance Schema apagado: consume varias decenas de MB de estructuras fijas
+# y aqui no se usa para monitoreo (Railway ya expone sus propias metricas).
+# Estaba comentado y solo se apagaba desde el comando de arranque de Railway,
+# ahora queda fijado en el repositorio.
+performance_schema = OFF
+
+# El plugin X (puerto 33060, protocolo X DevAPI) no lo usa ninguna aplicacion,
+# todas conectan por el protocolo clasico en 3306. Apagarlo evita sus hilos y buffers.
+mysqlx = OFF
+
+# Caches de diccionario y de tablas dimensionadas al uso real
+# (231 tablas abiertas y 162 definiciones en 17 horas de servicio).
+# Los valores por defecto (4000 y 2000) solo servian para inflar el techo de memoria.
+table_open_cache = 600
+table_definition_cache = 600
+
+# Motor TempTable: por defecto puede reservar hasta 1 GB de RAM para tablas
+# temporales internas y tarda en devolverla. Se limita a 64M, muy por encima
+# de lo que necesitan las consultas de este servicio.
+temptable_max_ram = 64M
+tmp_table_size = 16M
+max_heap_table_size = 16M
+
+# key_buffer_size solo sirve a MyISAM y aqui todo es InnoDB, se baja de 8M a 4M.
+key_buffer_size = 4M
+
+# ==========================================
+# CONEXIONES
+# ==========================================
+# El pico historico medido es de 2 conexiones simultaneas. Se baja de 100 a 60,
+# que sigue siendo un margen enorme y reduce el peor caso de memoria por hilo.
+max_connections = 60
 max_allowed_packet = 64M
+# Se mantienen los timeouts largos para no romper los pools de conexiones
+# de las aplicaciones que ya estan en produccion.
 wait_timeout = 28800
 interactive_timeout = 28800
 
-# Performance Schema (optional: disable if memory is very low)
-# performance_schema = OFF
+# Buffers por conexion fijados de forma explicita en valores pequenos,
+# para que el peor caso (60 conexiones) no se dispare.
+sort_buffer_size = 256K
+join_buffer_size = 256K
+read_buffer_size = 128K
+read_rnd_buffer_size = 256K
 
-# Slow Query log for optimization tasks
+# ==========================================
+# LOGS Y JUEGO DE CARACTERES (sin cambios)
+# ==========================================
 slow_query_log = 1
 long_query_time = 1
 log_output = FILE
 slow_query_log_file = /var/log/mysql/slow-query.log
 
-# Character Set
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
 
